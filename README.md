@@ -25,7 +25,7 @@ npm run dev
 
 ### Supabase
 
-1. Жаңа жоба ашып, `supabase/schema.sql` файлын SQL Editor-да орындаңыз.
+1. Жаңа жоба ашып, `supabase/schema.sql` файлын SQL Editor-да орындаңыз. Файлды қайта жіберуге болады. `profiles` кестесі басқа бағандармен бұрыннан бар болса, скрипт `nickname` және `avatar_color` бағандарын қосады.
 2. Authentication → Email провайдерін қосыңыз.
 3. `.env.example` файлын `.env` етіп көшіріп, `VITE_SUPABASE_URL` және `VITE_SUPABASE_ANON_KEY` мәндерін қойыңыз. Кілттерді git-ке салмаңыз.
 4. `npm run dev`. Пошта мен құпия сөз немесе сиқырлы сілтеме жұмыс істейді. Бос `.env` жергілікті режимді қалдырады.
@@ -49,7 +49,7 @@ npm run dev
 
 ### Supabase
 
-1. Создайте проект и выполните `supabase/schema.sql` в SQL Editor.
+1. Создайте проект и выполните `supabase/schema.sql` в SQL Editor. Файл можно запускать повторно. Если таблица `profiles` уже есть с другими колонками, скрипт добавит `nickname` и `avatar_color`.
 2. Включите Email в Authentication.
 3. Скопируйте `.env.example` в `.env` и заполните `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`. Не коммитьте ключи.
 4. `npm run dev`. Вход почтой и паролем или ссылкой. Пустые переменные оставляют локальный режим.
@@ -77,7 +77,7 @@ Leaderboard sort:
 
 ### Supabase
 
-1. Create a project and run `supabase/schema.sql` in the SQL editor. It creates `profiles`, `attempts`, `attempt_answers`, `favorites`, a `section_progress` view, and `leaderboard_rows()`. Row level security lets anyone read the leaderboard aggregates and lets a user write only their own rows. Answer choices stay private.
+1. Create a project and run `supabase/schema.sql` in the SQL editor. It creates `profiles`, `attempts`, `attempt_answers`, `favorites`, a `section_progress` view, and `leaderboard_rows()`. The file is safe to re-run. If `profiles` already exists with different columns, the script adds `nickname` and `avatar_color` instead of leaving that table unchanged. Row level security lets anyone read the leaderboard aggregates and lets a user write only their own rows. Answer choices stay private.
 2. Enable the Email provider under Authentication.
 3. Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Do not commit real keys.
 4. Restart `npm run dev`. The same screens use email and password or a magic link. Leave the variables empty to stay on the local adapter.

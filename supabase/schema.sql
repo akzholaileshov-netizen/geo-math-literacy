@@ -1,5 +1,8 @@
 -- ҰБТ math-literacy store.
--- Run this in the Supabase SQL editor for a new project.
+-- Run this whole file in the Supabase SQL editor.
+-- Safe to re-run. If public.profiles already exists with a different shape
+-- (for example id, email, full_name, created_at), the block below adds
+-- nickname and avatar_color instead of skipping them.
 -- Points (also implemented in src/services/points.ts):
 --   each correct answer = 10 + floor(seconds_left / 30), max 20.
 --   a wrong answer or a timeout = 0.
@@ -13,6 +16,89 @@ create table if not exists public.profiles (
   avatar_color text not null default '#8d6a2e',
   created_at timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists nickname text;
+alter table public.profiles add column if not exists avatar_color text default '#8d6a2e';
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'full_name'
+  ) then
+    execute 'alter table public.profiles alter column full_name drop not null';
+  end if;
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'email'
+  ) then
+    execute 'alter table public.profiles alter column email drop not null';
+  end if;
+end $$;
+
+update public.profiles
+set nickname = 'Student'
+where nickname is null or char_length(btrim(nickname)) < 2;
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'full_name'
+  ) and exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'email'
+  ) then
+    execute $u$
+      update public.profiles
+      set nickname = left(
+        coalesce(
+          nullif(btrim(full_name), ''),
+          nullif(split_part(coalesce(email, ''), '@', 1), ''),
+          nickname
+        ),
+        24
+      )
+      where nickname = 'Student'
+    $u$;
+  end if;
+end $$;
+
+update public.profiles
+set avatar_color = '#8d6a2e'
+where avatar_color is null or avatar_color = '';
+
+alter table public.profiles alter column nickname set not null;
+alter table public.profiles alter column avatar_color set default '#8d6a2e';
+alter table public.profiles alter column avatar_color set not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.profiles'::regclass and conname = 'profiles_nickname_len'
+  ) then
+    alter table public.profiles
+      add constraint profiles_nickname_len check (char_length(nickname) between 2 and 24);
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.profiles'::regclass
+      and contype = 'f'
+      and confrelid = 'auth.users'::regclass
+  ) then
+    alter table public.profiles
+      add constraint profiles_id_fkey
+      foreign key (id) references auth.users (id) on delete cascade;
+  end if;
+exception when others then
+  raise notice 'profiles auth foreign key was not added: %', sqlerrm;
+end $$;
 
 create table if not exists public.attempts (
   id uuid primary key default gen_random_uuid(),
