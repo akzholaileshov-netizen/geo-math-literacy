@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --elev: #fffaf3;
+  --ink: #1c1612;
+  --muted: #5e564c;
+  --line: #e4d8c6;
+  --brass: #8d6a2e;
+  --brass-deep: #6e5220;
+  --good: #1f6b45;
+  --bad: #8e342c;
+  --shadow: 0 18px 50px rgba(58, 40, 16, 0.08);
+  --glow: rgba(168, 124, 48, 0.18);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #110f0c;
+  --elev: #1c1915;
+  --ink: #f6efe4;
+  --muted: #b7aa98;
+  --line: #3c342b;
+  --brass: #e0c17a;
+  --brass-deep: #a68445;
+  --good: #9ed4b4;
+  --bad: #f0b0a8;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --glow: rgba(224, 193, 122, 0.12);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(900px 420px at 8% -10%, var(--glow), transparent 55%),
+    radial-gradient(700px 380px at 100% 0%, var(--glow), transparent 50%),
+    var(--bg);
+  color: var(--ink);
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(196, 161, 90, 0.35);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
