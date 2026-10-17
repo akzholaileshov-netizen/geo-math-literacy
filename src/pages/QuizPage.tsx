@@ -23,11 +23,14 @@ export function QuizPage() {
   const attemptsRef = useRef<Attempt[]>([]);
   const indexRef = useRef(0);
   const lockRef = useRef(false);
+  const startedAtRef = useRef(new Date().toISOString());
+  const endsAtRef = useRef(0);
 
   useEffect(() => {
     attemptsRef.current = [];
     indexRef.current = 0;
     lockRef.current = false;
+    startedAtRef.current = new Date().toISOString();
     setIndex(0);
     setSelected(null);
     setHintOpen(false);
@@ -40,6 +43,7 @@ export function QuizPage() {
     setHintOpen(false);
     setLeft(QUESTION_SECONDS);
     const endsAt = Date.now() + QUESTION_SECONDS * 1000;
+    endsAtRef.current = endsAt;
     const timer = window.setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
       setLeft(remaining);
@@ -62,15 +66,23 @@ export function QuizPage() {
     if (lockRef.current || !questions || !section) return false;
     lockRef.current = true;
     const current = questions[indexRef.current];
+    const secondsLeft = timedOut ? 0 : Math.max(0, Math.ceil((endsAtRef.current - Date.now()) / 1000));
     const attempt: Attempt = {
       questionId: current.id,
       selectedIndex: timedOut ? null : choice,
       timedOut,
+      secondsLeft,
     };
     const nextAttempts = [...attemptsRef.current, attempt];
     attemptsRef.current = nextAttempts;
     if (indexRef.current + 1 >= questions.length) {
-      const result: QuizResult = { sectionId: section.id, attempts: nextAttempts };
+      const result: QuizResult = {
+        id: crypto.randomUUID(),
+        sectionId: section.id,
+        attempts: nextAttempts,
+        startedAt: startedAtRef.current,
+        finishedAt: new Date().toISOString(),
+      };
       sessionStorage.setItem(STORAGE.result, JSON.stringify(result));
       setFinished(result);
       return true;

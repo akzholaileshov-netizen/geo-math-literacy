@@ -17,6 +17,7 @@ export function grade(questions: Question[], attempts: Attempt[]): Graded[] {
       questionId: question.id,
       selectedIndex: null,
       timedOut: true,
+      secondsLeft: 0,
     };
     return { question, attempt, correct: isCorrect(question, attempt) };
   });

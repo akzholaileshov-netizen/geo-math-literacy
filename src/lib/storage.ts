@@ -2,7 +2,10 @@ export const STORAGE = {
   lang: 'ubt-lang',
   theme: 'ubt-theme',
   favorites: 'ubt-favorites',
+  favoritesMigrated: 'ubt-favorites-migrated',
   result: 'ubt-quiz-result',
+  pendingAttempt: 'ubt-pending-attempt',
+  store: 'ubt-store-v1',
 } as const;
 
 export function readJson<T>(key: string, fallback: T): T {

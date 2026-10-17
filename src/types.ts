@@ -60,9 +60,14 @@ export type Attempt = {
   questionId: string;
   selectedIndex: number | null;
   timedOut: boolean;
+  /** Seconds remaining when the answer was confirmed. Timeouts store 0. */
+  secondsLeft: number;
 };
 
 export type QuizResult = {
+  id: string;
   sectionId: string;
   attempts: Attempt[];
+  startedAt: string;
+  finishedAt: string;
 };
