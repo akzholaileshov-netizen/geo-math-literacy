@@ -20,14 +20,19 @@ export function DashboardPage() {
   useEffect(() => {
     if (!ready || !profile) return;
     let cancel = false;
-    void Promise.all([store.dashboardStats(), store.sectionProgress(), store.listAttempts()]).then(
-      ([nextStats, nextSections, nextAttempts]) => {
+    void Promise.all([store.dashboardStats(), store.sectionProgress(), store.listAttempts()])
+      .then(([nextStats, nextSections, nextAttempts]) => {
         if (cancel) return;
         setStats(nextStats);
         setSections(nextSections);
         setAttempts(nextAttempts);
-      },
-    );
+      })
+      .catch(() => {
+        if (cancel) return;
+        setStats(null);
+        setSections([]);
+        setAttempts([]);
+      });
     return () => {
       cancel = true;
     };

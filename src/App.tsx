@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { Layout } from './components/Layout';
 import { StoreProvider } from './hooks/StoreContext';
 import { LanguageProvider } from './i18n/LanguageContext';
@@ -17,21 +18,23 @@ export default function App() {
     <ThemeProvider>
       <LanguageProvider>
         <StoreProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/section/:sectionId/:subsectionId" element={<SubsectionPage />} />
-                <Route path="/quiz/:sectionId" element={<QuizPage />} />
-                <Route path="/results/:sectionId" element={<ResultsPage />} />
-                <Route path="/favorites" element={<FavoritesPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-              </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
+          <AppErrorBoundary>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/section/:sectionId/:subsectionId" element={<SubsectionPage />} />
+                  <Route path="/quiz/:sectionId" element={<QuizPage />} />
+                  <Route path="/results/:sectionId" element={<ResultsPage />} />
+                  <Route path="/favorites" element={<FavoritesPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </AppErrorBoundary>
         </StoreProvider>
       </LanguageProvider>
     </ThemeProvider>

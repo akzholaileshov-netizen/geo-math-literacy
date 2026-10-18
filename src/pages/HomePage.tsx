@@ -17,9 +17,13 @@ export function HomePage() {
       return;
     }
     let cancel = false;
-    void Promise.all([store.dashboardStats(), store.leaderboard(10, 'points')]).then(([stats, board]) => {
-      if (!cancel) setSummary({ stats, rank: board.me?.rank ?? null });
-    });
+    void Promise.all([store.dashboardStats(), store.leaderboard(10, 'points')])
+      .then(([stats, board]) => {
+        if (!cancel) setSummary({ stats, rank: board.me?.rank ?? null });
+      })
+      .catch(() => {
+        if (!cancel) setSummary(null);
+      });
     return () => {
       cancel = true;
     };

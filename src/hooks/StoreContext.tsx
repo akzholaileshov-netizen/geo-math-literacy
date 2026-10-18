@@ -1,11 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createDataStore } from '../data/store';
+import { createLocalStore } from '../data/store/local';
 import type { AttemptRecord, DataStore, EmailSignUpResult, Profile, SaveAttemptInput } from '../data/store/types';
 import { STORAGE } from '../lib/storage';
+
+const STORE_PROBE_MS = 12_000;
 
 type StoreValue = {
   store: DataStore;
   ready: boolean;
+  remoteNotice: boolean;
   profile: Profile | null;
   favorites: string[];
   revision: number;
@@ -30,69 +34,117 @@ type StoreValue = {
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const store = useMemo(() => createDataStore(), []);
+  const [store, setStore] = useState<DataStore>(() => createDataStore());
   const [ready, setReady] = useState(false);
+  const [remoteNotice, setRemoteNotice] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [revision, setRevision] = useState(0);
   const profileRef = useRef<Profile | null>(null);
+  const storeRef = useRef(store);
+  storeRef.current = store;
 
   const applyProfile = useCallback((next: Profile | null) => {
     profileRef.current = next;
     setProfile(next);
   }, []);
 
-  const absorbLegacy = useCallback(async () => {
-    const legacy = readStringList(localStorage.getItem(STORAGE.favorites));
-    if (legacy.length === 0) return;
-    const current = await store.listFavorites();
-    for (const id of legacy) {
-      if (!current.includes(id)) await store.setFavorite(id, true);
-    }
-    localStorage.removeItem(STORAGE.favorites);
-  }, [store]);
-
   const finishAuth = useCallback(
-    async (next: Profile | null) => {
+    async (next: Profile | null, active: DataStore = storeRef.current) => {
       applyProfile(next);
       if (next) {
-        if (store.mode === 'supabase') {
-          await absorbLegacy();
+        if (active.mode === 'supabase') {
+          const legacy = readStringList(localStorage.getItem(STORAGE.favorites));
+          if (legacy.length > 0) {
+            const current = await active.listFavorites();
+            for (const id of legacy) {
+              if (!current.includes(id)) await active.setFavorite(id, true);
+            }
+            localStorage.removeItem(STORAGE.favorites);
+          }
           const raw = sessionStorage.getItem(STORAGE.pendingAttempt);
           if (raw) {
             sessionStorage.removeItem(STORAGE.pendingAttempt);
             try {
-              await store.saveAttempt(JSON.parse(raw) as SaveAttemptInput);
+              await active.saveAttempt(JSON.parse(raw) as SaveAttemptInput);
             } catch {
               sessionStorage.setItem(STORAGE.pendingAttempt, raw);
             }
           }
         }
-        setFavorites(await store.listFavorites());
+        setFavorites(await active.listFavorites());
       } else {
         setFavorites(readStringList(localStorage.getItem(STORAGE.favorites)));
       }
       setRevision((value) => value + 1);
     },
-    [absorbLegacy, applyProfile, store],
+    [applyProfile],
   );
 
   useEffect(() => {
     let cancel = false;
+    let stop = () => {};
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const active = store;
+
+    const withTimeout = <T,>(promise: Promise<T>): Promise<T> =>
+      new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('store_timeout')), STORE_PROBE_MS);
+        timers.add(timer);
+        promise.then(
+          (value) => {
+            clearTimeout(timer);
+            timers.delete(timer);
+            resolve(value);
+          },
+          (error: unknown) => {
+            clearTimeout(timer);
+            timers.delete(timer);
+            reject(error instanceof Error ? error : new Error('store_failed'));
+          },
+        );
+      });
+
+    const useLocalCopy = () => {
+      if (cancel || active.mode !== 'supabase' || typeof localStorage === 'undefined') return false;
+      setRemoteNotice(true);
+      setStore(createLocalStore(localStorage));
+      return true;
+    };
+
     void (async () => {
-      const session = await store.getSession();
-      if (cancel) return;
-      await finishAuth(session);
-      if (!cancel) setReady(true);
+      try {
+        if (active.mode === 'supabase') {
+          await withTimeout(active.leaderboard(10, 'points'));
+        }
+        const session = await withTimeout(active.getSession());
+        if (cancel) return;
+        await finishAuth(session, active);
+        if (cancel) return;
+        stop = active.onAuthChange((next) => {
+          void finishAuth(next, active).catch(() => {
+            useLocalCopy();
+          });
+        });
+        setReady(true);
+      } catch {
+        if (cancel) return;
+        if (useLocalCopy()) return;
+        try {
+          await finishAuth(null, active);
+        } catch {
+          applyProfile(null);
+        }
+        if (!cancel) setReady(true);
+      }
     })();
-    const stop = store.onAuthChange((next) => {
-      void finishAuth(next);
-    });
+
     return () => {
       cancel = true;
       stop();
+      for (const timer of timers) clearTimeout(timer);
     };
-  }, [finishAuth, store]);
+  }, [applyProfile, finishAuth, store]);
 
   const persistQuiz = useCallback(
     async (input: SaveAttemptInput) => {
@@ -153,6 +205,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       store,
       ready,
+      remoteNotice,
       profile,
       favorites,
       revision,
@@ -185,7 +238,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeFavorite,
       persistQuiz,
     }),
-    [finishAuth, persistQuiz, profile, ready, favorites, revision, removeFavorite, store, toggleFavorite],
+    [finishAuth, persistQuiz, profile, ready, remoteNotice, favorites, revision, removeFavorite, store, toggleFavorite],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

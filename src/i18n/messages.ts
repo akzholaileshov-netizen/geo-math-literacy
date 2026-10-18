@@ -112,6 +112,7 @@ export const messages: Record<Lang, Record<string, string>> = {
     signedInAs: 'Сіз кірдіңіз',
     saveNickname: 'Атты сақтау',
     emptyDash: 'Кабинетті көру үшін кіріңіз немесе тест тапсырыңыз.',
+    supabaseFallback: 'Supabase әзірге дайын емес. Нәтиже осы құрылғыда сақталады.',
   },
   ru: {
     brand: 'Математическая грамотность',
@@ -224,5 +225,6 @@ export const messages: Record<Lang, Record<string, string>> = {
     signedInAs: 'Вы вошли',
     saveNickname: 'Сохранить имя',
     emptyDash: 'Войдите или пройдите тест, чтобы увидеть кабинет.',
+    supabaseFallback: 'Supabase пока не готов. Результат сохраняется на этом устройстве.',
   },
 };

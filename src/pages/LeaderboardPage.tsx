@@ -16,11 +16,18 @@ export function LeaderboardPage() {
   useEffect(() => {
     if (!ready) return;
     let cancel = false;
-    void store.leaderboard(limit, sort).then((board) => {
-      if (cancel) return;
-      setRows(board.rows);
-      setMe(board.me);
-    });
+    void store
+      .leaderboard(limit, sort)
+      .then((board) => {
+        if (cancel) return;
+        setRows(board.rows);
+        setMe(board.me);
+      })
+      .catch(() => {
+        if (cancel) return;
+        setRows([]);
+        setMe(null);
+      });
     return () => {
       cancel = true;
     };

@@ -17,6 +17,8 @@ npm run dev
 
 Тексеру: `npm test`, `npm run validate`, `npm run build`.
 
+Vercel: Framework **Vite**, build `npm run build`, output `dist`, Node.js **22.x**. Node 20 жаңа деплойда қабылданбайды. Supabase схемасы жоқ болса, сайт жергілікті режимге түсіп, хабар көрсетеді.
+
 ### Ұпай
 
 Дұрыс жауап: **10 + floor(қалған секунд / 30)**, ең көбі 20. Қате және уақыт бітуі: 0. Бір тест ең көбі 600 ұпай. Жұмсалған уақыт: `300 − қалған секунд`.
@@ -41,6 +43,8 @@ npm run dev
 
 Проверка: `npm test`, `npm run validate`, `npm run build`.
 
+Vercel: пресет **Vite**, команда `npm run build`, каталог `dist`, Node.js **22.x**. Node 20 для новых деплоев отключён. Если схема Supabase не применена, сайт переходит в локальный режим и показывает сообщение.
+
 ### Очки
 
 Верный ответ: **10 + floor(оставшиеся секунды / 30)**, максимум 20. Ошибка и тайм-аут: 0. Максимум за тест — 600. Затраченное время: `300 − оставшиеся секунды`.
@@ -61,7 +65,7 @@ npm install
 npm run dev
 ```
 
-`npm test` covers scoring and the local store. `npm run validate` checks the 210 answer keys. `npm run build` typechecks and builds. `vercel.json` rewrites client routes to `index.html`.
+`npm test` covers scoring and the local store. `npm run validate` checks the 210 answer keys. `npm run build` typechecks and builds. `vercel.json` sets the Vite preset, `npm run build`, and output directory `dist`. The SPA rewrite runs only after static files, so `/assets` is served from `dist`. `engines.node` is `22.x`: Vite 7 needs Node 22.12 or newer, and Vercel rejects Node 20 on new deployments (the current default for a new project is 24.x, which also works). If the Supabase schema is missing or the client errors, the app falls back to local storage and shows a Kazakh/Russian notice instead of a blank page.
 
 Local mode needs no keys. It keeps profiles, attempts, per-section progress, and favorites in `localStorage`, and seeds 30 demo students. Anonymous quizzes create a guest profile that can be claimed with a nickname. Existing `ubt-favorites` entries move into that profile.
 

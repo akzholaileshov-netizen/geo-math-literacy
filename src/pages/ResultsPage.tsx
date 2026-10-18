@@ -30,11 +30,15 @@ export function ResultsPage() {
   useEffect(() => {
     if (!result) return;
     let cancel = false;
-    void persistQuiz(attemptInput(result)).then((record) => {
-      if (cancel) return;
-      if (record) setSaved(true);
-      else setPendingCloud(true);
-    });
+    void persistQuiz(attemptInput(result))
+      .then((record) => {
+        if (cancel) return;
+        if (record) setSaved(true);
+        else setPendingCloud(true);
+      })
+      .catch(() => {
+        if (!cancel) setPendingCloud(false);
+      });
     return () => {
       cancel = true;
     };
