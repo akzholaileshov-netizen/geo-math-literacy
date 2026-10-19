@@ -2,7 +2,7 @@ import type { LeaderboardSort, RankedRow } from '../../services/ranking';
 
 export type { LeaderboardSort, RankedRow };
 
-export type StoreMode = 'local' | 'supabase';
+export type StoreMode = 'local';
 
 export type Profile = {
   id: string;
@@ -10,7 +10,6 @@ export type Profile = {
   avatarColor: string;
   createdAt: string;
   isGuest: boolean;
-  email: string | null;
 };
 
 export type RawAnswer = {
@@ -68,17 +67,11 @@ export type DashboardStats = {
   solved: number;
 };
 
-export type EmailSignUpResult = {
-  profile: Profile | null;
-  needsConfirmation: boolean;
-};
-
 export type StoreErrorCode =
   | 'nickname_taken'
   | 'nickname_unknown'
   | 'invalid_nickname'
   | 'auth_failed'
-  | 'email_required'
   | 'not_signed_in';
 
 export class StoreError extends Error {
@@ -100,14 +93,6 @@ export type DataStore = {
   getSession(): Promise<Profile | null>;
   registerNickname(nickname: string, avatarColor: string): Promise<Profile>;
   signInNickname(nickname: string): Promise<Profile>;
-  registerEmail(
-    email: string,
-    password: string,
-    nickname: string,
-    avatarColor: string,
-  ): Promise<EmailSignUpResult>;
-  signInEmail(email: string, password: string): Promise<Profile>;
-  sendMagicLink(email: string): Promise<void>;
   updateProfile(nickname: string, avatarColor: string): Promise<Profile>;
   signOut(): Promise<void>;
   claimGuest(nickname: string, avatarColor: string): Promise<Profile>;

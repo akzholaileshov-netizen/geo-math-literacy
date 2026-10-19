@@ -4,7 +4,6 @@ export const STORAGE = {
   favorites: 'ubt-favorites',
   favoritesMigrated: 'ubt-favorites-migrated',
   result: 'ubt-quiz-result',
-  pendingAttempt: 'ubt-pending-attempt',
   store: 'ubt-store-v1',
 } as const;
 

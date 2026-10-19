@@ -1,28 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createDataStore } from '../data/store';
-import { createLocalStore } from '../data/store/local';
-import type { AttemptRecord, DataStore, EmailSignUpResult, Profile, SaveAttemptInput } from '../data/store/types';
+import type { AttemptRecord, DataStore, Profile, SaveAttemptInput } from '../data/store/types';
 import { STORAGE } from '../lib/storage';
-
-const STORE_PROBE_MS = 12_000;
 
 type StoreValue = {
   store: DataStore;
   ready: boolean;
-  remoteNotice: boolean;
   profile: Profile | null;
   favorites: string[];
   revision: number;
   registerNickname: (nickname: string, avatarColor: string) => Promise<void>;
   signInNickname: (nickname: string) => Promise<void>;
-  registerEmail: (
-    email: string,
-    password: string,
-    nickname: string,
-    avatarColor: string,
-  ) => Promise<EmailSignUpResult>;
-  signInEmail: (email: string, password: string) => Promise<void>;
-  sendMagicLink: (email: string) => Promise<void>;
   updateProfile: (nickname: string, avatarColor: string) => Promise<void>;
   claimGuest: (nickname: string, avatarColor: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -34,15 +22,12 @@ type StoreValue = {
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [store, setStore] = useState<DataStore>(() => createDataStore());
+  const store = useMemo(() => createDataStore(), []);
   const [ready, setReady] = useState(false);
-  const [remoteNotice, setRemoteNotice] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [revision, setRevision] = useState(0);
   const profileRef = useRef<Profile | null>(null);
-  const storeRef = useRef(store);
-  storeRef.current = store;
 
   const applyProfile = useCallback((next: Profile | null) => {
     profileRef.current = next;
@@ -50,108 +35,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finishAuth = useCallback(
-    async (next: Profile | null, active: DataStore = storeRef.current) => {
+    async (next: Profile | null) => {
       applyProfile(next);
-      if (next) {
-        if (active.mode === 'supabase') {
-          const legacy = readStringList(localStorage.getItem(STORAGE.favorites));
-          if (legacy.length > 0) {
-            const current = await active.listFavorites();
-            for (const id of legacy) {
-              if (!current.includes(id)) await active.setFavorite(id, true);
-            }
-            localStorage.removeItem(STORAGE.favorites);
-          }
-          const raw = sessionStorage.getItem(STORAGE.pendingAttempt);
-          if (raw) {
-            sessionStorage.removeItem(STORAGE.pendingAttempt);
-            try {
-              await active.saveAttempt(JSON.parse(raw) as SaveAttemptInput);
-            } catch {
-              sessionStorage.setItem(STORAGE.pendingAttempt, raw);
-            }
-          }
-        }
-        setFavorites(await active.listFavorites());
-      } else {
-        setFavorites(readStringList(localStorage.getItem(STORAGE.favorites)));
-      }
+      if (next) setFavorites(await store.listFavorites());
+      else setFavorites(readStringList(localStorage.getItem(STORAGE.favorites)));
       setRevision((value) => value + 1);
     },
-    [applyProfile],
+    [applyProfile, store],
   );
 
   useEffect(() => {
     let cancel = false;
-    let stop = () => {};
-    const timers = new Set<ReturnType<typeof setTimeout>>();
-    const active = store;
-
-    const withTimeout = <T,>(promise: Promise<T>): Promise<T> =>
-      new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('store_timeout')), STORE_PROBE_MS);
-        timers.add(timer);
-        promise.then(
-          (value) => {
-            clearTimeout(timer);
-            timers.delete(timer);
-            resolve(value);
-          },
-          (error: unknown) => {
-            clearTimeout(timer);
-            timers.delete(timer);
-            reject(error instanceof Error ? error : new Error('store_failed'));
-          },
-        );
-      });
-
-    const useLocalCopy = () => {
-      if (cancel || active.mode !== 'supabase' || typeof localStorage === 'undefined') return false;
-      setRemoteNotice(true);
-      setStore(createLocalStore(localStorage));
-      return true;
-    };
-
     void (async () => {
       try {
-        if (active.mode === 'supabase') {
-          await withTimeout(active.leaderboard(10, 'points'));
-        }
-        const session = await withTimeout(active.getSession());
+        const session = await store.getSession();
         if (cancel) return;
-        await finishAuth(session, active);
-        if (cancel) return;
-        stop = active.onAuthChange((next) => {
-          void finishAuth(next, active).catch(() => {
-            useLocalCopy();
-          });
-        });
-        setReady(true);
+        await finishAuth(session);
       } catch {
-        if (cancel) return;
-        if (useLocalCopy()) return;
-        try {
-          await finishAuth(null, active);
-        } catch {
-          applyProfile(null);
-        }
-        if (!cancel) setReady(true);
+        if (!cancel) applyProfile(null);
       }
+      if (!cancel) setReady(true);
     })();
-
+    const stop = store.onAuthChange((next) => {
+      void finishAuth(next).catch(() => applyProfile(null));
+    });
     return () => {
       cancel = true;
       stop();
-      for (const timer of timers) clearTimeout(timer);
     };
   }, [applyProfile, finishAuth, store]);
 
   const persistQuiz = useCallback(
     async (input: SaveAttemptInput) => {
-      if (!profileRef.current && store.mode === 'supabase') {
-        sessionStorage.setItem(STORAGE.pendingAttempt, JSON.stringify(input));
-        return null;
-      }
       if (!profileRef.current) {
         const guest = await store.ensureGuest();
         applyProfile(guest);
@@ -167,24 +82,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const toggleFavorite = useCallback(
     async (questionId: string) => {
       if (!profileRef.current) {
-        if (store.mode === 'local') {
-          const guest = await store.ensureGuest();
-          applyProfile(guest);
-        } else {
-          const next = favorites.includes(questionId)
-            ? favorites.filter((id) => id !== questionId)
-            : [...favorites, questionId];
-          localStorage.setItem(STORAGE.favorites, JSON.stringify(next));
-          setFavorites(next);
-          return;
-        }
+        const guest = await store.ensureGuest();
+        applyProfile(guest);
       }
       const current = await store.listFavorites();
       const saved = !current.includes(questionId);
       setFavorites(await store.setFavorite(questionId, saved));
       setRevision((value) => value + 1);
     },
-    [applyProfile, favorites, store],
+    [applyProfile, store],
   );
 
   const removeFavorite = useCallback(
@@ -205,7 +111,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       store,
       ready,
-      remoteNotice,
       profile,
       favorites,
       revision,
@@ -215,15 +120,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       signInNickname: async (nickname) => {
         await finishAuth(await store.signInNickname(nickname));
       },
-      registerEmail: async (email, password, nickname, avatarColor) => {
-        const result = await store.registerEmail(email, password, nickname, avatarColor);
-        if (result.profile) await finishAuth(result.profile);
-        return result;
-      },
-      signInEmail: async (email, password) => {
-        await finishAuth(await store.signInEmail(email, password));
-      },
-      sendMagicLink: (email) => store.sendMagicLink(email),
       updateProfile: async (nickname, avatarColor) => {
         await finishAuth(await store.updateProfile(nickname, avatarColor));
       },
@@ -238,7 +134,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeFavorite,
       persistQuiz,
     }),
-    [finishAuth, persistQuiz, profile, ready, remoteNotice, favorites, revision, removeFavorite, store, toggleFavorite],
+    [finishAuth, persistQuiz, profile, ready, favorites, revision, removeFavorite, store, toggleFavorite],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

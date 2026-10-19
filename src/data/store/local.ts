@@ -66,7 +66,6 @@ export function createLocalStore(storage: KeyValueStore): DataStore {
     avatarColor: profile.avatarColor,
     createdAt: profile.createdAt,
     isGuest: profile.isGuest,
-    email: profile.email,
   });
 
   const migrateFavorites = (db: Db, profileId: string) => {
@@ -118,18 +117,6 @@ export function createLocalStore(storage: KeyValueStore): DataStore {
       migrateFavorites(db, profile.id);
       save(db);
       return toPublic(profile);
-    },
-
-    async registerEmail() {
-      throw new StoreError('email_required');
-    },
-
-    async signInEmail() {
-      throw new StoreError('email_required');
-    },
-
-    async sendMagicLink() {
-      throw new StoreError('email_required');
     },
 
     async updateProfile(nickname, avatarColor) {
@@ -293,7 +280,6 @@ function makeUser(nickname: string, avatarColor: string, isGuest: boolean): Loca
     avatarColor,
     createdAt: new Date().toISOString(),
     isGuest,
-    email: null,
     isDemo: false,
   };
 }
@@ -307,7 +293,6 @@ function freshDb(): Db {
       avatarColor: demo.avatarColor,
       createdAt: DEMO_CREATED,
       isGuest: false,
-      email: null,
       isDemo: true,
       demo: {
         points: demo.points,

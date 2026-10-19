@@ -17,9 +17,8 @@ export function ResultsPage() {
   const section = findSection(sectionId);
   const questions = questionsBySection[sectionId];
   const { t, m } = useI18n();
-  const { persistQuiz, profile, store } = useStore();
+  const { persistQuiz, profile } = useStore();
   const [saved, setSaved] = useState(false);
-  const [pendingCloud, setPendingCloud] = useState(false);
 
   const stored = useMemo(() => readSessionJson<QuizResult | null>(STORAGE.result, null), [sectionId]);
   const result = useMemo(
@@ -32,12 +31,10 @@ export function ResultsPage() {
     let cancel = false;
     void persistQuiz(attemptInput(result))
       .then((record) => {
-        if (cancel) return;
-        if (record) setSaved(true);
-        else setPendingCloud(true);
+        if (!cancel && record) setSaved(true);
       })
       .catch(() => {
-        if (!cancel) setPendingCloud(false);
+        if (!cancel) setSaved(false);
       });
     return () => {
       cancel = true;
@@ -76,15 +73,7 @@ export function ResultsPage() {
       </section>
 
       {saved ? <p className="text-sm text-good">{m('attemptSaved')}</p> : null}
-      {pendingCloud ? (
-        <p className="text-sm text-muted">
-          {m('signInToSave')}{' '}
-          <Link to="/auth" className="text-brass">
-            {m('goAuth')}
-          </Link>
-        </p>
-      ) : null}
-      {profile?.isGuest && store.mode === 'local' ? <ClaimForm /> : null}
+      {profile?.isGuest ? <ClaimForm /> : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link to="/" className="rounded-full border border-line px-5 py-2.5 text-center hover:border-brass">
