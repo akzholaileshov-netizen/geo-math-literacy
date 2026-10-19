@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ClaimForm } from '../components/ClaimForm';
 import { MistakeReview } from '../components/MistakeReview';
+import { Badge } from '../components/ui/Badge';
+import { buttonClass } from '../components/ui/Button';
+import { GlassPanel } from '../components/ui/Card';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { findSection, questionsBySection } from '../data/catalog';
 import { useStore } from '../hooks/StoreContext';
 import { useI18n } from '../i18n/LanguageContext';
@@ -51,19 +55,16 @@ export function ResultsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-xs uppercase tracking-[0.22em] text-brass">{t(section.title)}</p>
-        <h1 className="mt-2 font-serif text-4xl sm:text-5xl">{m('results')}</h1>
-      </header>
+      <SectionHeader eyebrow={t(section.title)} title={m('results')} />
 
       <section className="grid gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-line bg-elev p-5 sm:col-span-2">
+        <GlassPanel className="p-5 sm:col-span-2">
           <div className="text-sm text-muted">{m('percentLabel')}</div>
           <div className="font-serif text-6xl text-brass">{score.percent}%</div>
           <div className="mt-1 text-lg">
             {score.correct} / {score.total}
           </div>
-        </div>
+        </GlassPanel>
         <Stat label={m('points')} value={summary.points} />
         <div className="grid gap-3">
           <Stat label={m('correctLabel')} value={score.correct} />
@@ -72,19 +73,23 @@ export function ResultsPage() {
         </div>
       </section>
 
-      {saved ? <p className="text-sm text-good">{m('attemptSaved')}</p> : null}
+      {saved ? (
+        <p>
+          <Badge tone="good">{m('attemptSaved')}</Badge>
+        </p>
+      ) : null}
       {profile?.isGuest ? <ClaimForm /> : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Link to="/" className="rounded-full border border-line px-5 py-2.5 text-center hover:border-brass">
+        <Link to="/" className={buttonClass('ghost')}>
           {m('backHome')}
         </Link>
-        <Link to="/dashboard" className="rounded-full border border-line px-5 py-2.5 text-center hover:border-brass">
+        <Link to="/dashboard" className={buttonClass('ghost')}>
           {m('dashboard')}
         </Link>
         <Link
           to={`/quiz/${section.id}`}
-          className="rounded-full bg-brass px-5 py-2.5 text-center font-semibold text-bg"
+          className={buttonClass('primary')}
         >
           {m('retry')}
         </Link>
@@ -100,9 +105,9 @@ export function ResultsPage() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-line bg-elev px-5 py-4">
+    <GlassPanel className="px-5 py-4">
       <div className="text-sm text-muted">{label}</div>
-      <div className="font-serif text-3xl">{value}</div>
-    </div>
+      <div className="font-serif text-3xl leading-tight">{value}</div>
+    </GlassPanel>
   );
 }

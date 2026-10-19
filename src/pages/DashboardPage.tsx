@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { ClaimForm } from '../components/ClaimForm';
 import { MistakeReview } from '../components/MistakeReview';
 import { SavedQuestionCard } from '../components/SavedQuestionCard';
+import { buttonClass } from '../components/ui/Button';
+import { GlassPanel } from '../components/ui/Card';
+import { ProgressBar } from '../components/ui/Progress';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { findSection, questionById } from '../data/catalog';
 import type { AttemptRecord, DashboardStats, SectionProgress } from '../data/store/types';
 import { profileLabel, useStore } from '../hooks/StoreContext';
@@ -41,13 +45,13 @@ export function DashboardPage() {
   if (!ready) return null;
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-line bg-elev p-6">
-        <h1 className="font-serif text-4xl">{m('dashboard')}</h1>
-        <p className="mt-3 text-muted">{m('emptyDash')}</p>
-        <Link to="/auth" className="mt-4 inline-flex text-brass">
-          {m('goAuth')} →
+      <GlassPanel className="p-6">
+        <h1 className="font-serif text-4xl leading-tight">{m('dashboard')}</h1>
+        <p className="measure mt-3 text-muted">{m('emptyDash')}</p>
+        <Link to="/auth" className={buttonClass('primary', 'mt-4')}>
+          {m('goAuth')}
         </Link>
-      </div>
+      </GlassPanel>
     );
   }
 
@@ -56,10 +60,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-xs uppercase tracking-[0.22em] text-brass">{m('summaryStrip')}</p>
-        <h1 className="mt-2 font-serif text-4xl sm:text-5xl">{profileLabel(profile, m('guest'))}</h1>
-      </header>
+      <SectionHeader eyebrow={m('summaryStrip')} title={profileLabel(profile, m('guest'))} />
 
       {profile.isGuest ? <ClaimForm /> : null}
 
@@ -72,8 +73,8 @@ export function DashboardPage() {
         <Stat label={m('bestSection')} value={best ? t(best.title) : m('noBest')} />
       </section>
 
-      <section className="rounded-2xl border border-line bg-elev p-5 shadow-card sm:p-6">
-        <h2 className="font-serif text-3xl">{m('sectionProgress')}</h2>
+      <GlassPanel className="p-5 sm:p-6">
+        <h2 className="font-serif text-3xl leading-tight">{m('sectionProgress')}</h2>
         <ul className="mt-4 space-y-4">
           {sections.map((row) => {
             const section = findSection(row.sectionId);
@@ -86,14 +87,14 @@ export function DashboardPage() {
                     {row.bestPercent}% · {row.attempts}
                   </span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-line" aria-hidden>
-                  <div className="h-full bg-brass" style={{ width: `${Math.max(0, Math.min(100, row.bestPercent))}%` }} />
+                <div className="mt-2">
+                  <ProgressBar value={row.bestPercent} label={t(section.title)} />
                 </div>
               </li>
             );
           })}
         </ul>
-      </section>
+      </GlassPanel>
 
       <section className="space-y-4">
         <h2 className="font-serif text-3xl">{m('savedHard')}</h2>
@@ -111,7 +112,7 @@ export function DashboardPage() {
           const section = findSection(attempt.sectionId);
           const open = openId === attempt.id;
           return (
-            <article key={attempt.id} className="rounded-2xl border border-line bg-elev p-5 shadow-card">
+            <GlassPanel key={attempt.id} className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="font-serif text-2xl">{section ? t(section.title) : attempt.sectionId}</h3>
@@ -124,7 +125,7 @@ export function DashboardPage() {
                   type="button"
                   aria-expanded={open}
                   onClick={() => setOpenId(open ? null : attempt.id)}
-                  className="rounded-full border border-line px-4 py-2 text-sm hover:border-brass"
+                  className={buttonClass('ghost')}
                 >
                   {open ? m('hideReview') : m('openReview')}
                 </button>
@@ -135,7 +136,7 @@ export function DashboardPage() {
                   <MistakeReview sectionId={attempt.sectionId} attempts={attempt.answers} />
                 </div>
               ) : null}
-            </article>
+            </GlassPanel>
           );
         })}
       </section>
@@ -145,9 +146,9 @@ export function DashboardPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-elev px-5 py-4">
+    <GlassPanel className="px-5 py-4">
       <div className="text-sm text-muted">{label}</div>
-      <div className="font-serif text-3xl leading-tight">{value}</div>
-    </div>
+      <div className="break-words font-serif text-2xl leading-tight sm:text-3xl">{value}</div>
+    </GlassPanel>
   );
 }

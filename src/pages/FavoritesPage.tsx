@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
 import { VisualBlock } from '../components/VisualBlock';
+import { buttonClass } from '../components/ui/Button';
+import { GlassPanel } from '../components/ui/Card';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { questionById } from '../data/catalog';
 import { useFavorites } from '../favorites/useFavorites';
 import { useI18n } from '../i18n/LanguageContext';
@@ -11,26 +14,24 @@ export function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-serif text-4xl sm:text-5xl">{m('favorites')}</h1>
-      </header>
+      <SectionHeader title={m('favorites')} />
       {questions.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-elev p-6">
-          <p className="text-muted">{m('emptyFav')}</p>
-          <Link to="/" className="mt-4 inline-flex text-brass">
-            {m('toSections')} →
+        <GlassPanel className="p-6">
+          <p className="measure text-muted">{m('emptyFav')}</p>
+          <Link to="/" className={buttonClass('primary', 'mt-4')}>
+            {m('toSections')}
           </Link>
-        </div>
+        </GlassPanel>
       ) : (
         <div className="space-y-4">
           {questions.map((question) => (
-            <article key={question.id} className="rounded-2xl border border-line bg-elev p-5 shadow-card sm:p-6">
+            <GlassPanel key={question.id} className="p-5 sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-serif text-2xl leading-snug">{t(question.prompt)}</h2>
                 <button
                   type="button"
                   onClick={() => remove(question.id)}
-                  className="shrink-0 rounded-full border border-line px-3 py-1 text-sm hover:border-bad hover:text-bad"
+                  className={buttonClass('ghost', 'shrink-0 hover:border-bad hover:text-bad')}
                 >
                   {m('remove')}
                 </button>
@@ -51,7 +52,7 @@ export function FavoritesPage() {
                 {m('hint')}: {t(question.hint)}
               </p>
               <p className="mt-3 whitespace-pre-wrap leading-relaxed">{t(question.solution)}</p>
-            </article>
+            </GlassPanel>
           ))}
         </div>
       )}

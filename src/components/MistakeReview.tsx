@@ -1,3 +1,4 @@
+import { GlassPanel } from './ui/Card';
 import { VisualBlock } from './VisualBlock';
 import { questionsBySection } from '../data/catalog';
 import { useI18n } from '../i18n/LanguageContext';
@@ -18,7 +19,7 @@ export function MistakeReview({ sectionId, attempts }: { sectionId: string; atte
         const chosen =
           item.attempt.selectedIndex === null ? null : item.question.options[item.attempt.selectedIndex];
         return (
-          <article key={item.question.id} className="rounded-2xl border border-line bg-elev p-5 shadow-card sm:p-6">
+          <GlassPanel key={item.question.id} className="p-5 sm:p-6">
             <h3 className="font-serif text-2xl">
               {mistakeIndex + 1}. {t(item.question.prompt)}
             </h3>
@@ -42,7 +43,7 @@ export function MistakeReview({ sectionId, attempts }: { sectionId: string; atte
             </dl>
             <h4 className="mt-4 font-serif text-xl">{m('solution')}</h4>
             <p className="mt-2 whitespace-pre-wrap leading-relaxed">{t(item.question.solution)}</p>
-          </article>
+          </GlassPanel>
         );
       })}
     </div>

@@ -14,13 +14,21 @@ export default {
         'brass-deep': 'var(--brass-deep)',
         good: 'var(--good)',
         bad: 'var(--bad)',
+        onbrass: 'var(--on-brass)',
+        warn: 'var(--warn)',
+        urgent: 'var(--urgent)',
       },
       fontFamily: {
-        serif: ['"Cormorant Garamond"', 'Palatino Linotype', 'Palatino', 'Georgia', 'serif'],
+        serif: ['Literata', 'Palatino Linotype', 'Palatino', 'Georgia', 'serif'],
         sans: ['"Source Sans 3"', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
         card: 'var(--shadow)',
+        lift: 'var(--shadow-lift)',
+        glow: '0 0 24px var(--glow)',
+      },
+      minHeight: {
+        11: '2.75rem',
       },
     },
   },

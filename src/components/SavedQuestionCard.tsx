@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { buttonClass, choiceClass } from './ui/Button';
+import { GlassPanel } from './ui/Card';
+import { HintIcon } from './ui/icons';
 import { VisualBlock } from './VisualBlock';
 import { useI18n } from '../i18n/LanguageContext';
 import type { Question } from '../types';
@@ -13,13 +16,13 @@ export function SavedQuestionCard({ question, onRemove }: { question: Question; 
   const correct = picked === question.correctIndex;
 
   return (
-    <article className="rounded-2xl border border-line bg-elev p-5 shadow-card">
+    <GlassPanel className="p-5">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-serif text-2xl leading-snug">{t(question.prompt)}</h3>
         <button
           type="button"
           onClick={onRemove}
-          className="shrink-0 rounded-full border border-line px-3 py-1 text-sm hover:border-bad hover:text-bad"
+          className={buttonClass('ghost', 'shrink-0 hover:border-bad hover:text-bad')}
         >
           {m('remove')}
         </button>
@@ -46,13 +49,7 @@ export function SavedQuestionCard({ question, onRemove }: { question: Question; 
                   type="button"
                   disabled={revealed}
                   onClick={() => setPicked(index)}
-                  className={`rounded-xl border px-4 py-3 text-left ${
-                    showCorrect
-                      ? 'border-good bg-good/10'
-                      : showWrong
-                        ? 'border-bad bg-bad/10'
-                        : 'border-line hover:border-brass/60'
-                  }`}
+                  className={choiceClass(showCorrect ? 'correct' : showWrong ? 'wrong' : 'idle')}
                 >
                   <span className="mr-2 font-serif text-brass">{String.fromCharCode(65 + index)}</span>
                   {t(option)}
@@ -64,8 +61,9 @@ export function SavedQuestionCard({ question, onRemove }: { question: Question; 
           <button
             type="button"
             onClick={() => setHintOpen((value) => !value)}
-            className="rounded-full border border-line px-4 py-2 text-sm hover:border-brass"
+            className={buttonClass('ghost')}
           >
+            <HintIcon />
             {hintOpen ? m('hideHint') : m('hint')}
           </button>
           {hintOpen ? <p className="rounded-xl border border-brass/40 bg-brass/10 px-4 py-3 text-sm">{t(question.hint)}</p> : null}
@@ -77,6 +75,6 @@ export function SavedQuestionCard({ question, onRemove }: { question: Question; 
           ) : null}
         </div>
       ) : null}
-    </article>
+    </GlassPanel>
   );
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ClaimForm } from '../components/ClaimForm';
 import { ColorPicker } from '../components/ColorPicker';
+import { buttonClass } from '../components/ui/Button';
+import { SectionHeader } from '../components/ui/SectionHeader';
 import { AVATAR_COLORS } from '../data/store/palette';
 import { isStoreError, type StoreErrorCode } from '../data/store/types';
 import { profileLabel, useStore } from '../hooks/StoreContext';
@@ -33,7 +35,7 @@ export function AuthPage() {
         <button
           type="button"
           onClick={() => void store.signOut()}
-          className="rounded-full border border-line px-4 py-2 text-sm hover:border-brass"
+          className={buttonClass('ghost')}
         >
           {m('signOut')}
         </button>
@@ -49,7 +51,7 @@ export function AuthPage() {
           {m('signedInAs')}: {profileLabel(store.profile, m('guest'))}
         </p>
         <form
-          className="space-y-3 rounded-2xl border border-line bg-elev p-5"
+          className="surface space-y-3 rounded-3xl p-5"
           onSubmit={(event) => {
             event.preventDefault();
             setError(null);
@@ -64,7 +66,7 @@ export function AuthPage() {
             value={nickname}
             placeholder={store.profile.nickname}
             onChange={(event) => setNickname(event.target.value)}
-            className="w-full rounded-xl border border-line bg-bg px-3 py-2"
+            className="min-h-11 w-full rounded-2xl border border-line bg-bg/80 px-3 text-ink"
           />
           <ColorPicker value={color} onChange={setColor} label={m('avatarColor')} />
           {error ? (
@@ -72,18 +74,18 @@ export function AuthPage() {
               {error}
             </p>
           ) : null}
-          <button type="submit" className="rounded-full bg-brass px-5 py-2 text-sm font-semibold text-bg">
+          <button type="submit" className={buttonClass('primary')}>
             {m('saveNickname')}
           </button>
         </form>
         <div className="flex gap-3">
-          <Link to="/dashboard" className="rounded-full border border-line px-4 py-2 text-sm hover:border-brass">
+          <Link to="/dashboard" className={buttonClass('ghost')}>
             {m('dashboard')}
           </Link>
           <button
             type="button"
             onClick={() => void store.signOut()}
-            className="rounded-full border border-line px-4 py-2 text-sm hover:border-brass"
+            className={buttonClass('ghost')}
           >
             {m('signOut')}
           </button>
@@ -94,12 +96,9 @@ export function AuthPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
-      <header>
-        <h1 className="font-serif text-4xl sm:text-5xl">{m('authTitle')}</h1>
-        <p className="mt-2 text-muted">{m('authLeadLocal')}</p>
-      </header>
+      <SectionHeader title={m('authTitle')} lead={m('authLeadLocal')} />
       <form
-        className="space-y-4 rounded-2xl border border-line bg-elev p-5 shadow-card"
+        className="surface space-y-4 rounded-3xl p-5"
         onSubmit={(event) => event.preventDefault()}
       >
         <label className="block text-sm text-muted" htmlFor="nick">
@@ -108,7 +107,7 @@ export function AuthPage() {
             id="nick"
             value={nickname}
             onChange={(event) => setNickname(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2 text-ink"
+            className="mt-1 min-h-11 w-full rounded-2xl border border-line bg-bg/80 px-3 text-ink"
             autoComplete="nickname"
           />
         </label>
@@ -122,7 +121,7 @@ export function AuthPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
-            className="rounded-full bg-brass px-5 py-2 text-sm font-semibold text-bg"
+            className={buttonClass('primary')}
             onClick={() => {
               setError(null);
               void store.registerNickname(nickname, color).catch(fail);
@@ -132,7 +131,7 @@ export function AuthPage() {
           </button>
           <button
             type="button"
-            className="rounded-full border border-line px-5 py-2 text-sm hover:border-brass"
+                className={buttonClass('ghost')}
             onClick={() => {
               setError(null);
               void store.signInNickname(nickname).catch(fail);

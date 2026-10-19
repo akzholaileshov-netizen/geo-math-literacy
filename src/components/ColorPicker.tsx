@@ -20,7 +20,7 @@ export function ColorPicker({
             aria-label={color}
             aria-pressed={value === color}
             onClick={() => onChange(color)}
-            className={`h-8 w-8 rounded-full border-2 ${value === color ? 'border-ink' : 'border-transparent'}`}
+            className={`h-11 w-11 rounded-full border-2 ${value === color ? 'border-ink shadow-glow' : 'border-transparent'}`}
             style={{ backgroundColor: color }}
           />
         ))}

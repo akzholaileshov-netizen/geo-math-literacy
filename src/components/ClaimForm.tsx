@@ -3,6 +3,7 @@ import { AVATAR_COLORS } from '../data/store/palette';
 import { isStoreError } from '../data/store/types';
 import { useStore } from '../hooks/StoreContext';
 import { useI18n } from '../i18n/LanguageContext';
+import { buttonClass } from './ui/Button';
 import { ColorPicker } from './ColorPicker';
 
 export function ClaimForm() {
@@ -14,7 +15,7 @@ export function ClaimForm() {
 
   return (
     <form
-      className="rounded-2xl border border-brass/40 bg-brass/10 p-5"
+      className="surface rounded-3xl border-brass/40 p-5"
       onSubmit={(event) => {
         event.preventDefault();
         setError(null);
@@ -34,7 +35,7 @@ export function ClaimForm() {
         id="claim-name"
         value={nickname}
         onChange={(event) => setNickname(event.target.value)}
-        className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2 text-ink"
+        className="mt-1 min-h-11 w-full rounded-2xl border border-line bg-bg/80 px-3 text-ink"
         autoComplete="nickname"
       />
       <div className="mt-3">
@@ -45,7 +46,7 @@ export function ClaimForm() {
           {error}
         </p>
       ) : null}
-      <button type="submit" className="mt-4 rounded-full bg-brass px-5 py-2 text-sm font-semibold text-bg">
+      <button type="submit" className={buttonClass('primary', 'mt-4')}>
         {m('claim')}
       </button>
     </form>

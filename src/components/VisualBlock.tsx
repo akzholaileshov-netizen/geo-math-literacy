@@ -6,7 +6,7 @@ export function VisualBlock({ visual }: { visual: Visual }) {
 
   if (visual.type === 'table') {
     return (
-      <div className="overflow-x-auto rounded-xl border border-line">
+      <div className="overflow-x-auto rounded-2xl border border-line">
         <table className="w-full min-w-[280px] border-collapse text-left text-sm">
           <thead className="bg-brass/10 text-ink">
             <tr>
@@ -36,7 +36,7 @@ export function VisualBlock({ visual }: { visual: Visual }) {
   if (visual.type === 'bar') {
     const max = Math.max(...visual.items.map((item) => item.value), 1);
     return (
-      <figure className="rounded-xl border border-line bg-bg/60 p-4">
+      <figure className="surface rounded-2xl p-4">
         <div className="flex h-32 items-end gap-2 sm:gap-3">
           {visual.items.map((item, index) => (
             <div key={index} className="flex h-full min-w-0 flex-1 flex-col justify-end">
@@ -73,7 +73,7 @@ export function VisualBlock({ visual }: { visual: Visual }) {
   const polyline = coords.map((coord) => `${coord.x},${coord.y}`).join(' ');
 
   return (
-    <figure className="rounded-xl border border-line bg-bg/60 p-4">
+    <figure className="surface rounded-2xl p-4">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-40 w-full" role="img">
         <polyline
           fill="none"
